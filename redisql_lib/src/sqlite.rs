@@ -310,6 +310,17 @@ pub enum QueryResult {
     },
 }
 
+fn type_to_string(t: i32) -> &'static str {
+    match t {
+        ffi::SQLITE_INTEGER => "INT",
+        ffi::SQLITE_FLOAT => "FLOAT",
+        ffi::SQLITE_TEXT => "TEXT",
+        ffi::SQLITE_BLOB => "BLOB",
+        ffi::SQLITE_NULL => "NULL",
+        _ => "NULL",
+    }
+}
+
 impl QueryResult {
     pub fn from_cursor_before(
         mut cursor: Cursor,
@@ -331,9 +342,8 @@ impl QueryResult {
                     return Err(err::RediSQLError::timeout());
                 }
                 let mut result = vec![];
-                let mut names =
-                    Vec::with_capacity(num_columns as usize);
-                for i in 0..num_columns {
+                let mut names = Vec::with_capacity(num_columns as usize);
+                /*for i in 0..num_columns {
                     let name = unsafe {
                         CStr::from_ptr(ffi::sqlite3_column_name(
                             stmt.as_ptr(),
@@ -343,7 +353,30 @@ impl QueryResult {
                         .into_owned()
                     };
                     names.push(name);
+                }*/
+                let mut types = Vec::with_capacity(num_columns as usize);
+                for i in 0..num_columns {
+                    let name = unsafe {
+                        CStr::from_ptr(ffi::sqlite3_column_name(
+                            stmt.as_ptr(),
+                            i,
+                        ))
+                        .to_string_lossy()
+                        .into_owned()
+                    };
+                    //names.push(name);
+                    names.push(name.clone());
+                    //result.push(Entity::Text { text: name });
+                    let t = type_to_string(unsafe {
+                        ffi::sqlite3_column_type(stmt.as_ptr(), i)
+                    });
+                    types.push(t);
+                    //result.push(Entity::Text {
+                    //    text: t.to_string(),
+                    //});
                 }
+                result.push(Entity::Text { text: names.join(",")});
+                result.push(Entity::Text { text: types.join(",")});
                 while *previous_status == ffi::SQLITE_ROW {
                     now = std::time::Instant::now();
                     if now > timeout {
@@ -392,7 +425,8 @@ impl TryFrom<Cursor> for QueryResult {
                 let mut result = vec![];
                 let mut names =
                     Vec::with_capacity(num_columns as usize);
-                for i in 0..num_columns {
+                /*
+                 for i in 0..num_columns {
                     let name = unsafe {
                         CStr::from_ptr(ffi::sqlite3_column_name(
                             stmt.as_ptr(),
@@ -402,7 +436,31 @@ impl TryFrom<Cursor> for QueryResult {
                         .into_owned()
                     };
                     names.push(name);
+                }*/
+                let mut types = Vec::with_capacity(num_columns as usize);
+                for i in 0..num_columns {
+                    let name = unsafe {
+                        CStr::from_ptr(ffi::sqlite3_column_name(
+                            stmt.as_ptr(),
+                            i,
+                        ))
+                        .to_string_lossy()
+                        .into_owned()
+                    };
+                    names.push(name.clone());
+                    //result.push(Entity::Text { text: name });
                 }
+                for i in 0..num_columns {
+                    let t = type_to_string(unsafe {
+                        ffi::sqlite3_column_type(stmt.as_ptr(), i)
+                    });
+                    types.push(t);
+                    //result.push(Entity::Text {
+                    //    text: t.to_string(),
+                    //});
+                }
+                result.push(Entity::Text { text: names.join(",")});
+                result.push(Entity::Text { text: types.join(",")});
                 while *previous_status == ffi::SQLITE_ROW {
                     for i in 0..num_columns {
                         let entity_value = Entity::new(stmt, i);
