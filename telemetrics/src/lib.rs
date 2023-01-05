@@ -70,6 +70,7 @@ impl Bucket {
 }
 
 fn send_telemetrics() -> Result<(), ()> {
+    return Ok(());
     let json_telemetrics = match STATISTICS.serialize() {
         Ok(s) => s,
         Err(_) => {
