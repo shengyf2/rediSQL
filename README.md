@@ -272,3 +272,10 @@ Copyright (C) 2019  Simone Mosciatti
 [redis-download]: https://redis.io/download
 [release-1.0.0]: http://redbeardlab.com/2019/04/09/redisql-release-1-0-0-change-in-strategy-and-business-model/
 [redisql-telemetrics]: http://redbeardlab.com/2019/04/09/telemetrics-for-redisql/
+
+
+
+======================================
+如何把sqlite嵌入到应用程序可能参考：<br/>
+https://lloydrochester.com/post/c/add-sqlite-project/
+
